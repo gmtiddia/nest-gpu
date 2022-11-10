@@ -22,8 +22,8 @@
 
 
 
-#ifndef AEIFPSCEXP_H
-#define AEIFPSCEXP_H
+#ifndef AEIFCONDALPHAMULTISYNAPSE_H
+#define AEIFCONDALPHAMULTISYNAPSE_H
 
 #include <iostream>
 #include <string>
@@ -35,18 +35,18 @@
 
 #define MAX_PORT_NUM 20
 
-struct aeif_psc_exp_rk5
+struct aeif_cond_alpha_rk5
 {
   int i_node_0_;
 };
 
-class aeif_psc_exp : public BaseNeuron
+class aeif_cond_alpha_multisynapse : public BaseNeuron
 {
  public:
-  RungeKutta5<aeif_psc_exp_rk5> rk5_;
+  RungeKutta5<aeif_cond_alpha_rk5> rk5_;
   float h_min_;
   float h_;
-  aeif_psc_exp_rk5 rk5_data_struct_;
+  aeif_cond_alpha_rk5 rk5_data_struct_;
     
   int Init(int i_node_0, int n_neuron, int n_port, int i_group,
 	   unsigned long long *seed);

@@ -22,8 +22,8 @@
 
 
 
-#ifndef AEIFPSCDELTA_H
-#define AEIFPSCDELTA_H
+#ifndef AEIFPSCDELTAMULTISYNAPSE_H
+#define AEIFPSCDELTAMULTISYNAPSE_H
 
 #include <iostream>
 #include <string>
@@ -40,7 +40,7 @@ struct aeif_psc_delta_rk5
   int i_node_0_;
 };
 
-class aeif_psc_delta : public BaseNeuron
+class aeif_psc_delta_multisynapse : public BaseNeuron
 {
  public:
   RungeKutta5<aeif_psc_delta_rk5> rk5_;

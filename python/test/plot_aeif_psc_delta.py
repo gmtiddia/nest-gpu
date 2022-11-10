@@ -1,7 +1,7 @@
 import sys
 import nestgpu as ngpu
 
-neuron = ngpu.Create('aeif_psc_delta')
+neuron = ngpu.Create('aeif_psc_delta_multisynapse')
 ngpu.SetStatus(neuron, {"V_peak": 0.0, "a": 4.0, "b":80.5, "E_L":-70.6, \
                         "g_L":300.0, "C_m":20000.0})
 spike = ngpu.Create("spike_generator")

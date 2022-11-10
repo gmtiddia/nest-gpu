@@ -25,16 +25,16 @@
 #include <config.h>
 #include <cmath>
 #include <iostream>
-#include "aeif_cond_alpha_kernel.h"
+#include "aeif_psc_exp_multisynapse_kernel.h"
 #include "rk5.h"
-#include "aeif_cond_alpha.h"
+#include "aeif_psc_exp_multisynapse.h"
 
-namespace aeif_cond_alpha_ns
+namespace aeif_psc_exp_multisynapse_ns
 {
 
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y, float *param,
-	      aeif_cond_alpha_rk5 data_struct)
+	      aeif_psc_exp_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
@@ -57,50 +57,48 @@ void NodeInit(int n_var, int n_param, double x, float *y, float *param,
   w = 0;
   refractory_step = 0;
   for (int i = 0; i<n_port; i++) {
-    g(i) = 0;
-    g1(i) = 0;
-    E_rev(i) = 0.0;
-    tau_syn(i) = 2.0;
+    tau_syn(i) = 0.2;
+    I_syn(i) = 0;
   }
 }
 
 __device__
 void NodeCalibrate(int n_var, int n_param, double x, float *y,
-		       float *param, aeif_cond_alpha_rk5 data_struct)
+		       float *param, aeif_psc_exp_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
+  //int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
 
   refractory_step = 0;
-  for (int i = 0; i<n_port; i++) {
-    // use normalization for alpha function
-    g0(i) = M_E / tau_syn(i);
+  // set the right threshold depending on Delta_T
+  if (Delta_T <= 0.0) {
+    V_peak = V_th; // same as IAF dynamics for spikes if Delta_T == 0.
   }
 }
 
 }
-			    
+
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y,
-	     float *param, aeif_cond_alpha_rk5 data_struct)
+	     float *param, aeif_psc_exp_rk5 data_struct)
 {
-    aeif_cond_alpha_ns::NodeInit(n_var, n_param, x, y, param, data_struct);
+    aeif_psc_exp_multisynapse_ns::NodeInit(n_var, n_param, x, y, param, data_struct);
 }
 
 __device__
 void NodeCalibrate(int n_var, int n_param, double x, float *y,
-		  float *param, aeif_cond_alpha_rk5 data_struct)
+		  float *param, aeif_psc_exp_rk5 data_struct)
 
 {
-    aeif_cond_alpha_ns::NodeCalibrate(n_var, n_param, x, y, param, data_struct);
+    aeif_psc_exp_multisynapse_ns::NodeCalibrate(n_var, n_param, x, y, param, data_struct);
 }
 
-using namespace aeif_cond_alpha_ns;
+using namespace aeif_psc_exp_multisynapse_ns;
 
-int aeif_cond_alpha::Init(int i_node_0, int n_node, int n_port,
+int aeif_psc_exp_multisynapse::Init(int i_node_0, int n_node, int n_port,
 			 int i_group, unsigned long long *seed) {
   BaseNeuron::Init(i_node_0, n_node, n_port, i_group, seed);
-  node_type_ = i_aeif_cond_alpha_model;
+  node_type_ = i_aeif_psc_exp_multisynapse_model;
   n_scal_var_ = N_SCAL_VAR;
   n_port_var_ = N_PORT_VAR;
   n_scal_param_ = N_SCAL_PARAM;
@@ -112,12 +110,12 @@ int aeif_cond_alpha::Init(int i_node_0, int n_node, int n_port,
 
   group_param_ = new float[N_GROUP_PARAM];
   
-  scal_var_name_ = aeif_cond_alpha_scal_var_name;
-  port_var_name_= aeif_cond_alpha_port_var_name;
-  scal_param_name_ = aeif_cond_alpha_scal_param_name;
-  port_param_name_ = aeif_cond_alpha_port_param_name;
-  group_param_name_ = aeif_cond_alpha_group_param_name;
-  //rk5_data_struct_.node_type_ = i_aeif_cond_alpha_model;
+  scal_var_name_ = aeif_psc_exp_scal_var_name;
+  port_var_name_= aeif_psc_exp_port_var_name;
+  scal_param_name_ = aeif_psc_exp_scal_param_name;
+  port_param_name_ = aeif_psc_exp_port_param_name;
+  group_param_name_ = aeif_psc_exp_group_param_name;
+  //rk5_data_struct_.node_type_ = i_aeif_psc_exp_model;
   rk5_data_struct_.i_node_0_ = i_node_0_;
 
   SetGroupParam("h_min_rel", 1.0e-3);
@@ -128,13 +126,16 @@ int aeif_cond_alpha::Init(int i_node_0, int n_node, int n_port,
   var_arr_ = rk5_.GetYArr();
   param_arr_ = rk5_.GetParamArr();
 
-  port_weight_arr_ = GetParamArr() + n_scal_param_
-    + GetPortParamIdx("g0");
-  port_weight_arr_step_ = n_param_;
-  port_weight_port_step_ = n_port_param_;
+  // multiplication factor of input signal is always 1 for all nodes
+  float input_weight = 1.0;
+  gpuErrchk(cudaMalloc(&port_weight_arr_, sizeof(float)));
+  gpuErrchk(cudaMemcpy(port_weight_arr_, &input_weight,
+			 sizeof(float), cudaMemcpyHostToDevice));
+  port_weight_arr_step_ = 0;
+  port_weight_port_step_ = 0;
 
   port_input_arr_ = GetVarArr() + n_scal_var_
-    + GetPortVarIdx("g1");
+    + GetPortVarIdx("I_syn");
   port_input_arr_step_ = n_var_;
   port_input_port_step_ = n_port_var_;
   den_delay_arr_ =  GetParamArr() + GetScalParamIdx("den_delay");
@@ -142,7 +143,7 @@ int aeif_cond_alpha::Init(int i_node_0, int n_node, int n_port,
   return 0;
 }
 
-int aeif_cond_alpha::Calibrate(double time_min, float time_resolution)
+int aeif_psc_exp_multisynapse::Calibrate(double time_min, float time_resolution)
 {
   h_min_ = h_min_rel_* time_resolution;
   h_ = h0_rel_* time_resolution;
@@ -152,12 +153,12 @@ int aeif_cond_alpha::Calibrate(double time_min, float time_resolution)
 }
 
 template <>
-int aeif_cond_alpha::UpdateNR<0>(long long it, double t1)
+int aeif_psc_exp_multisynapse::UpdateNR<0>(long long it, double t1)
 {
   return 0;
 }
 
-int aeif_cond_alpha::Update(long long it, double t1) {
+int aeif_psc_exp_multisynapse::Update(long long it, double t1) {
   UpdateNR<MAX_PORT_NUM>(it, t1);
 
   return 0;

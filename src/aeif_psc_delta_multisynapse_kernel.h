@@ -22,20 +22,20 @@
 
 
 
-#ifndef AEIFPSCDELTAKERNEL_H
-#define AEIFPSCDELTAKERNEL_H
+#ifndef AEIFPSCDELTAMULTISYNAPSEKERNEL_H
+#define AEIFPSCDELTAMULTISYNAPSEKERNEL_H
 
 #include <string>
 #include <cmath>
 #include "spike_buffer.h"
 #include "node_group.h"
-#include "aeif_psc_delta.h"
+#include "aeif_psc_delta_multisynapse.h"
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 extern __constant__ float NESTGPUTimeResolution;
 
-namespace aeif_psc_delta_ns
+namespace aeif_psc_delta_multisynapse_ns
 {
 enum ScalVarIndexes {
   i_V_m = 0,
@@ -193,7 +193,7 @@ __device__
 void Derivatives(double x, float *y, float *dydx, float *param,
 		 aeif_psc_delta_rk5 data_struct)
 {
-    aeif_psc_delta_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
+    aeif_psc_delta_multisynapse_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
 						 data_struct);
 }
 
@@ -202,7 +202,7 @@ __device__
 void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
 		    aeif_psc_delta_rk5 data_struct)
 {
-    aeif_psc_delta_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,
+    aeif_psc_delta_multisynapse_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,
 						    end_time_step,
 						    data_struct);
 }
