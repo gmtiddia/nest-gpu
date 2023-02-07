@@ -22,28 +22,28 @@
 
 
 
-#ifndef AEIFCONDALPHARK5_H
-#define AEIFCONDALPHARK5_H
+#ifndef AEIFPSCDELTAMULTISYNAPSERK5_H
+#define AEIFPSCDELTAMULTISYNAPSERK5_H
 
-struct aeif_cond_alpha_rk5;
+struct aeif_psc_delta_multisynapse_rk5;
 
 
 template<int NVAR, int NPARAM>
 __device__
 void Derivatives(double x, float *y, float *dydx, float *param,
-		 aeif_cond_alpha_rk5 data_struct);
+		 aeif_psc_delta_multisynapse_rk5 data_struct);
 
 template<int NVAR, int NPARAM>
 __device__
 void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
-		    aeif_cond_alpha_rk5 data_struct);
+		    aeif_psc_delta_multisynapse_rk5 data_struct);
 
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y,
-	      float *param, aeif_cond_alpha_rk5 data_struct);
+	      float *param, aeif_psc_delta_multisynapse_rk5 data_struct);
 
 __device__
 void NodeCalibrate(int n_var, int n_param, double x, float *y,
-		   float *param, aeif_cond_alpha_rk5 data_struct);
+		   float *param, aeif_psc_delta_multisynapse_rk5 data_struct);
 
 #endif
