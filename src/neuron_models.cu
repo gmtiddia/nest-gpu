@@ -34,6 +34,7 @@
 #include "iaf_psc_exp_hc.h"
 #include "iaf_psc_exp_g.h"
 #include "ext_neuron.h"
+#include "aeif_cond_alpha.h"
 #include "aeif_cond_beta_multisynapse.h"
 #include "aeif_cond_alpha_multisynapse.h"
 #include "aeif_psc_alpha_multisynapse.h"
@@ -79,6 +80,13 @@ NodeSeq NESTGPU::Create(std::string model_name, int n_node /*=1*/,
   else if (model_name == neuron_model_name[i_ext_neuron_model]) {
     ext_neuron *ext_neuron_group = new ext_neuron;
     node_vect_.push_back(ext_neuron_group);
+  }
+  else if (model_name == neuron_model_name[i_aeif_cond_alpha_model]) {
+    if (n_port > 1) {
+      throw ngpu_exception("Number of ports should be 1. Please choose a multisynapse model instead.");
+    }
+    aeif_cond_alpha *aeif_cond_alpha_group = new aeif_cond_alpha;
+    node_vect_.push_back(aeif_cond_alpha_group);
   }
   else if (model_name == neuron_model_name[i_aeif_cond_beta_multisynapse_model]) {
     aeif_cond_beta_multisynapse *aeif_cond_beta_multisynapse_group = new aeif_cond_beta_multisynapse;

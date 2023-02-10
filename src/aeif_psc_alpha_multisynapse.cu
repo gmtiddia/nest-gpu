@@ -34,7 +34,7 @@ namespace aeif_psc_alpha_multisynapse_ns
 
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y, float *param,
-	      aeif_psc_alpha_rk5 data_struct)
+	      aeif_psc_alpha_multisynapse_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
@@ -65,7 +65,7 @@ void NodeInit(int n_var, int n_param, double x, float *y, float *param,
 
 __device__
 void NodeCalibrate(int n_var, int n_param, double x, float *y,
-		       float *param, aeif_psc_alpha_rk5 data_struct)
+		       float *param, aeif_psc_alpha_multisynapse_rk5 data_struct)
 {
   //int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
   int n_port = (n_var-N_SCAL_VAR)/N_PORT_VAR;
@@ -84,14 +84,14 @@ void NodeCalibrate(int n_var, int n_param, double x, float *y,
 
 __device__
 void NodeInit(int n_var, int n_param, double x, float *y,
-	     float *param, aeif_psc_alpha_rk5 data_struct)
+	     float *param, aeif_psc_alpha_multisynapse_rk5 data_struct)
 {
     aeif_psc_alpha_multisynapse_ns::NodeInit(n_var, n_param, x, y, param, data_struct);
 }
 
 __device__
 void NodeCalibrate(int n_var, int n_param, double x, float *y,
-		  float *param, aeif_psc_alpha_rk5 data_struct)
+		  float *param, aeif_psc_alpha_multisynapse_rk5 data_struct)
 
 {
     aeif_psc_alpha_multisynapse_ns::NodeCalibrate(n_var, n_param, x, y, param, data_struct);

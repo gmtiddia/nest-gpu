@@ -163,7 +163,7 @@ const std::string aeif_cond_beta_group_param_name[N_GROUP_PARAM] = {
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void Derivatives(double x, float *y, float *dydx, float *param,
-		     aeif_cond_beta_rk5 data_struct)
+		     aeif_cond_beta_multisynapse_rk5 data_struct)
 {
   enum { n_port = (NVAR-N_SCAL_VAR)/N_PORT_VAR };
   float I_syn = 0.0;
@@ -189,7 +189,7 @@ __device__
 __device__
     void ExternalUpdate
     (double x, float *y, float *param, bool end_time_step,
-			aeif_cond_beta_rk5 data_struct)
+			aeif_cond_beta_multisynapse_rk5 data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
     printf("V_m out of lower bound\n");
@@ -250,7 +250,7 @@ int aeif_cond_beta_multisynapse::UpdateNR(long long it, double t1)
 template<int NVAR, int NPARAM>
 __device__
 void Derivatives(double x, float *y, float *dydx, float *param,
-		 aeif_cond_beta_rk5 data_struct)
+		 aeif_cond_beta_multisynapse_rk5 data_struct)
 {
     aeif_cond_beta_multisynapse_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
 						 data_struct);
@@ -259,7 +259,7 @@ void Derivatives(double x, float *y, float *dydx, float *param,
 template<int NVAR, int NPARAM>
 __device__
 void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
-		    aeif_cond_beta_rk5 data_struct)
+		    aeif_cond_beta_multisynapse_rk5 data_struct)
 {
     aeif_cond_beta_multisynapse_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,
 						    end_time_step,

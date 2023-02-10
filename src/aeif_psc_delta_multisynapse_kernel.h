@@ -133,7 +133,7 @@ const std::string aeif_psc_delta_group_param_name[N_GROUP_PARAM] = {
  template<int NVAR, int NPARAM> //, class DataStruct>
 __device__
     void Derivatives(double x, float *y, float *dydx, float *param,
-		     aeif_psc_delta_rk5 data_struct)
+		     aeif_psc_delta_multisynapse_rk5 data_struct)
 {
   
   float V = ( refractory_step > 0 ) ? V_reset :  MIN(V_m, V_peak);
@@ -150,7 +150,7 @@ __device__
 __device__
     void ExternalUpdate
     (double x, float *y, float *param, bool end_time_step,
-			aeif_psc_delta_rk5 data_struct)
+			aeif_psc_delta_multisynapse_rk5 data_struct)
 {
   if ( V_m < -1.0e3) { // numerical instability
     printf("V_m out of lower bound\n");
@@ -191,7 +191,7 @@ __device__
 template<int NVAR, int NPARAM>
 __device__
 void Derivatives(double x, float *y, float *dydx, float *param,
-		 aeif_psc_delta_rk5 data_struct)
+		 aeif_psc_delta_multisynapse_rk5 data_struct)
 {
     aeif_psc_delta_multisynapse_ns::Derivatives<NVAR, NPARAM>(x, y, dydx, param,
 						 data_struct);
@@ -200,7 +200,7 @@ void Derivatives(double x, float *y, float *dydx, float *param,
 template<int NVAR, int NPARAM>
 __device__
 void ExternalUpdate(double x, float *y, float *param, bool end_time_step,
-		    aeif_psc_delta_rk5 data_struct)
+		    aeif_psc_delta_multisynapse_rk5 data_struct)
 {
     aeif_psc_delta_multisynapse_ns::ExternalUpdate<NVAR, NPARAM>(x, y, param,
 						    end_time_step,
