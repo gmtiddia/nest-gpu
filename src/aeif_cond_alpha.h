@@ -33,7 +33,7 @@
 #include "base_neuron.h"
 #include "neuron_models.h"
 
-#define MAX_PORT_NUM 20
+//#define MAX_PORT_NUM 20
 
 struct aeif_cond_alpha_rk5
 {

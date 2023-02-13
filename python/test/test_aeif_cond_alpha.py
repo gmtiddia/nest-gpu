@@ -1,10 +1,10 @@
 import sys
 import nestgpu as ngpu
 import numpy as np
-tolerance = 0.0005
+tolerance = 0.0001
 neuron = ngpu.Create('aeif_cond_alpha', 1)
 ngpu.SetStatus(neuron, {"V_peak": 0.0, "a": 4.0, "b":80.5, "E_L":-70.6,
-                        "g_L":300.0, 'E_rev_ex':20.0, 'E_rev_in': 0.0,
+                        "g_L":300.0, 'E_rev_ex':20.0, 'E_rev_in': -85.0,
                         'tau_syn_ex':40.0, 'tau_syn_in': 20.0})
 
 spike = ngpu.Create("spike_generator")
@@ -14,7 +14,7 @@ n_spikes = 2
 # set spike times and heights
 ngpu.SetStatus(spike, {"spike_times": spike_times})
 delay = [1.0, 100.0]
-weight = [0.1, -0.2]
+weight = [0.1, 0.2]
 
 conn_spec={"rule": "all_to_all"}
 syn_spec_ex={'receptor':0, 'weight': weight[0], 'delay': delay[0]}
@@ -30,17 +30,19 @@ data_list = ngpu.GetRecordData(record)
 t=[row[0] for row in data_list]
 V_m=[row[1] for row in data_list]
 
-data = np.loadtxt('test_aeif_cond_alpha_nest_non_mul.txt', delimiter="\t")
+data = np.loadtxt('test_aeif_cond_alpha_nest.txt', delimiter="\t")
 t1=[x[0] for x in data ]
 V_m1=[x[1] for x in data ]
 print (len(t))
 print (len(t1))
 
+"""
 import matplotlib.pyplot as plt
 plt.figure()
 plt.plot(t, V_m, "r--")
 plt.plot(t1, V_m1, "b--")
 plt.show()
+"""
 
 dV=[V_m[i*10+20]-V_m1[i] for i in range(len(t1))]
 #print(dV)

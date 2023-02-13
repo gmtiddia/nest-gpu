@@ -82,9 +82,7 @@ NodeSeq NESTGPU::Create(std::string model_name, int n_node /*=1*/,
     node_vect_.push_back(ext_neuron_group);
   }
   else if (model_name == neuron_model_name[i_aeif_cond_alpha_model]) {
-    if (n_port > 1) {
-      throw ngpu_exception("Number of ports should be 1. Please choose a multisynapse model instead.");
-    }
+    n_port = 2;
     aeif_cond_alpha *aeif_cond_alpha_group = new aeif_cond_alpha;
     node_vect_.push_back(aeif_cond_alpha_group);
   }

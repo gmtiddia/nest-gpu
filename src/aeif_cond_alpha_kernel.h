@@ -39,21 +39,13 @@ namespace aeif_cond_alpha_ns
 {
 enum ScalVarIndexes {
   i_g_ex = 0,
-  i_g1_ex,
   i_g_in,
+  i_g1_ex,
   i_g1_in,
   i_V_m,
   i_w,
   N_SCAL_VAR
 };
-
-/*
-enum PortVarIndexes {
-  i_g = 0,
-  i_g1,
-  N_PORT_VAR
-};
-*/
 
 enum ScalParamIndexes {
   i_g0_ex = 0,
@@ -79,15 +71,6 @@ enum ScalParamIndexes {
   N_SCAL_PARAM
 };
 
-/*
-enum PortParamIndexes {
-  i_E_rev = 0,
-  i_tau_syn,
-  i_g0,
-  N_PORT_PARAM
-};
-*/
-
 enum GroupParamIndexes {
   i_h_min_rel = 0,  // Min. step in ODE integr. relative to time resolution
   i_h0_rel,         // Starting step in ODE integr. relative to time resolution
@@ -96,19 +79,12 @@ enum GroupParamIndexes {
 
 const std::string aeif_cond_alpha_scal_var_name[N_SCAL_VAR] = {
   "g_ex",
-  "g1_ex",
   "g_in",
+  "g1_ex",
   "g1_in",
   "V_m",
   "w"
 };
-
-/*
-const std::string aeif_cond_alpha_multisynapse_port_var_name[N_PORT_VAR] = {
-  "g",
-  "g1"
-};
-*/
 
 const std::string aeif_cond_alpha_scal_param_name[N_SCAL_PARAM] = {
   "g0_ex",
@@ -132,14 +108,6 @@ const std::string aeif_cond_alpha_scal_param_name[N_SCAL_PARAM] = {
   "refractory_step",
   "den_delay",
 };
-
-/*
-const std::string aeif_cond_alpha_multisynapse_port_param_name[N_PORT_PARAM] = {
-  "E_rev",
-  "tau_syn",
-  "g0"  
-};
-*/
 
 const std::string aeif_cond_alpha_group_param_name[N_GROUP_PARAM] = {
   "h_min_rel",
