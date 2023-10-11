@@ -25,6 +25,7 @@ extern __device__ int ***remote_source_node_map;
 // local_spike_buffer_map[i_source_host][i_block][i]
 extern std::vector< std::vector<int*> > h_local_spike_buffer_map;
 extern __device__ int ***local_spike_buffer_map;
+extern int ***d_local_spike_buffer_map;
 
 // Arrays that map local source nodes to remote spike buffers
 
@@ -282,7 +283,9 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
 {
   // n_nodes will be the first index for new mapping of remote source nodes
   // to local spike buffers
-  int spike_buffer_map_i0 = GetNNode();
+  //int spike_buffer_map_i0 = GetNNode();
+  int spike_buffer_map_i0 = n_ext_nodes_;
+  syn_spec.port_ = syn_spec.port_ | (1 << (h_MaxPortNBits-1));
     
   // check if the flag UseAllSourceNodes[conn_rule] is false
   // if (!use_all_source_nodes_flag) {
@@ -291,7 +294,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
   // of booleans having size equal to the number of source nodes
     
   int *d_source_node_flag; // [n_source] // each element is initially false
-  gpuErrchk(cudaMalloc(&d_source_node_flag, n_source*sizeof(int)));
+  CUDAMALLOCCTRL("&d_source_node_flag",&d_source_node_flag, n_source*sizeof(int));
   //std::cout << "d_source_node_flag: " << d_source_node_flag << "\n";
   gpuErrchk(cudaMemset(d_source_node_flag, 0, n_source*sizeof(int)));  
     
@@ -299,7 +302,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
   // equal to the number of source nodes
     
   int *d_local_node_index; // [n_source]; // only on target host
-  gpuErrchk(cudaMalloc(&d_local_node_index, n_source*sizeof(int)));
+  CUDAMALLOCCTRL("&d_local_node_index",&d_local_node_index, n_source*sizeof(int));
     
   int64_t old_n_conn = NConn;
   // The connect command is performed on both source and target host using
@@ -354,7 +357,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
   // Count source nodes actually used in new connections
   // Allocate n_used_source_nodes and initialize it to 0
   int *d_n_used_source_nodes;
-  gpuErrchk(cudaMalloc(&d_n_used_source_nodes, sizeof(int)));
+  CUDAMALLOCCTRL("&d_n_used_source_nodes",&d_n_used_source_nodes, sizeof(int));
   gpuErrchk(cudaMemset(d_n_used_source_nodes, 0, sizeof(int)));  
   // Launch kernel to count used nodes
   countUsedSourceNodeKernel<<<(n_source+1023)/1024, 1024>>>
@@ -381,16 +384,16 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
   int *d_i_unsorted_source_arr; // [n_used_source_nodes];
   int *d_i_sorted_source_arr; // [n_used_source_nodes];
   bool *d_source_node_index_to_be_mapped; //[n_used_source_nodes]; // initially false
-  gpuErrchk(cudaMalloc(&d_unsorted_source_node_index,
-		       n_used_source_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_sorted_source_node_index,
-		       n_used_source_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_i_unsorted_source_arr,
-		       n_used_source_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_i_sorted_source_arr,
-		       n_used_source_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_source_node_index_to_be_mapped,
-		       n_used_source_nodes*sizeof(int8_t)));
+  CUDAMALLOCCTRL("&d_unsorted_source_node_index",&d_unsorted_source_node_index,
+		       n_used_source_nodes*sizeof(int));
+  CUDAMALLOCCTRL("&d_sorted_source_node_index",&d_sorted_source_node_index,
+		       n_used_source_nodes*sizeof(int));
+  CUDAMALLOCCTRL("&d_i_unsorted_source_arr",&d_i_unsorted_source_arr,
+		       n_used_source_nodes*sizeof(int));
+  CUDAMALLOCCTRL("&d_i_sorted_source_arr",&d_i_sorted_source_arr,
+		       n_used_source_nodes*sizeof(int));
+  CUDAMALLOCCTRL("&d_source_node_index_to_be_mapped",&d_source_node_index_to_be_mapped,
+		       n_used_source_nodes*sizeof(int8_t));
   // source_node_index_to_be_mapped is initially false
   gpuErrchk(cudaMemset(d_source_node_index_to_be_mapped, 0,
 		       n_used_source_nodes*sizeof(int8_t)));
@@ -445,7 +448,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
 				  d_i_sorted_source_arr,
 				  n_used_source_nodes);
   // Allocate temporary storage
-  gpuErrchk(cudaMalloc(&d_sort_storage, sort_storage_bytes));
+  CUDAMALLOCCTRL("&d_sort_storage",&d_sort_storage, sort_storage_bytes);
 
   // Run sorting operation
   cub::DeviceRadixSort::SortPairs(d_sort_storage, sort_storage_bytes,
@@ -504,7 +507,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
 		<< n_blocks << " in remote_source_node_map\n";
       exit(-1);
     }
-    gpuErrchk(cudaMalloc(&d_node_map, n_blocks*sizeof(int*)));
+    CUDAMALLOCCTRL("&d_node_map",&d_node_map, n_blocks*sizeof(int*));
     gpuErrchk(cudaMemcpy(d_node_map,
 			 &h_remote_source_node_map[source_host][0],
 			 n_blocks*sizeof(int*),
@@ -514,11 +517,11 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
   // Allocate boolean array for flagging remote source nodes not yet mapped
   // and initialize all elements to 0 (false)
   bool *d_node_to_map;
-  gpuErrchk(cudaMalloc(&d_node_to_map, n_used_source_nodes*sizeof(bool)));
+  CUDAMALLOCCTRL("&d_node_to_map",&d_node_to_map, n_used_source_nodes*sizeof(bool));
   gpuErrchk(cudaMemset(d_node_to_map, 0, n_used_source_nodes*sizeof(bool)));
   // Allocate number of nodes to be mapped and initialize it to 0 
   int *d_n_node_to_map;
-  gpuErrchk(cudaMalloc(&d_n_node_to_map, sizeof(int)));
+  CUDAMALLOCCTRL("&d_n_node_to_map",&d_n_node_to_map, sizeof(int));
   gpuErrchk(cudaMemset(d_n_node_to_map, 0, sizeof(int)));
 
   // launch kernel that searches remote source nodes indexes not in the map,
@@ -575,7 +578,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
     n_blocks = new_n_blocks;
 
     // reallocate d_node_map and get it from host
-    gpuErrchk(cudaMalloc(&d_node_map, n_blocks*sizeof(int*)));
+    CUDAMALLOCCTRL("&d_node_map",&d_node_map, n_blocks*sizeof(int*));
     gpuErrchk(cudaMemcpy(d_node_map,
 			 &h_remote_source_node_map[source_host][0],
 			 n_blocks*sizeof(int*),
@@ -583,7 +586,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
   }
   if (n_blocks > 0) {
     // allocate d_spike_buffer_map and get it from host
-    gpuErrchk(cudaMalloc(&d_spike_buffer_map, n_blocks*sizeof(int*)));
+    CUDAMALLOCCTRL("&d_spike_buffer_map",&d_spike_buffer_map, n_blocks*sizeof(int*));
     gpuErrchk(cudaMemcpy(d_spike_buffer_map,
 			 &h_local_spike_buffer_map[source_host][0],
 			 n_blocks*sizeof(int*),
@@ -597,7 +600,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
   
   // Allocate the index of the nodes to be mapped and initialize it to 0 
   int *d_i_node_to_map;
-  gpuErrchk(cudaMalloc(&d_i_node_to_map, sizeof(int)));
+  CUDAMALLOCCTRL("&d_i_node_to_map",&d_i_node_to_map, sizeof(int));
   gpuErrchk(cudaMemset(d_i_node_to_map, 0, sizeof(int)));
 
   // launch kernel that checks if nodes are already in map
@@ -682,7 +685,7 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
 #endif
   
   // Allocate temporary storage
-  gpuErrchk(cudaMalloc(&d_storage, storage_bytes));
+  CUDAMALLOCCTRL("&d_storage",&d_storage, storage_bytes);
 
   // Run sorting operation
   copass_sort::sort<int, int>
@@ -774,7 +777,9 @@ int NESTGPU::_RemoteConnectSource(int source_host, T1 source, int n_source,
   // On target host. Create n_nodes_to_map nodes of type ext_neuron
   //std::cout << "h_n_node_to_map " << h_n_node_to_map <<"\n";
   if (h_n_node_to_map > 0) {
-    Create("ext_neuron", h_n_node_to_map);
+    //_Create("ext_neuron", h_n_node_to_map);
+    n_ext_nodes_ += h_n_node_to_map;
+    //std::cout << "n_ext_nodes_ " << n_ext_nodes_ <<"\n";
   }
   
   return 0;
@@ -795,7 +800,7 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
   // of booleans having size equal to the number of source nodes
     
   int *d_source_node_flag; // [n_source] // each element is initially false
-  gpuErrchk(cudaMalloc(&d_source_node_flag, n_source*sizeof(int)));
+  CUDAMALLOCCTRL("&d_source_node_flag",&d_source_node_flag, n_source*sizeof(int));
   //std::cout << "d_source_node_flag: " << d_source_node_flag << "\n";
   gpuErrchk(cudaMemset(d_source_node_flag, 0, n_source*sizeof(int)));  
     
@@ -853,7 +858,7 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
   // Count source nodes actually used in new connections
   // Allocate n_used_source_nodes and initialize it to 0
   int *d_n_used_source_nodes;
-  gpuErrchk(cudaMalloc(&d_n_used_source_nodes, sizeof(int)));
+  CUDAMALLOCCTRL("&d_n_used_source_nodes",&d_n_used_source_nodes, sizeof(int));
   gpuErrchk(cudaMemset(d_n_used_source_nodes, 0, sizeof(int)));  
   // Launch kernel to count used nodes
   countUsedSourceNodeKernel<<<(n_source+1023)/1024, 1024>>>
@@ -880,16 +885,16 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
   int *d_i_unsorted_source_arr; // [n_used_source_nodes];
   int *d_i_sorted_source_arr; // [n_used_source_nodes];
   bool *d_source_node_index_to_be_mapped; //[n_used_source_nodes]; // initially false
-  gpuErrchk(cudaMalloc(&d_unsorted_source_node_index,
-		       n_used_source_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_sorted_source_node_index,
-		       n_used_source_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_i_unsorted_source_arr,
-		       n_used_source_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_i_sorted_source_arr,
-		       n_used_source_nodes*sizeof(int)));
-  gpuErrchk(cudaMalloc(&d_source_node_index_to_be_mapped,
-		       n_used_source_nodes*sizeof(int8_t)));
+  CUDAMALLOCCTRL("&d_unsorted_source_node_index",&d_unsorted_source_node_index,
+		       n_used_source_nodes*sizeof(int));
+  CUDAMALLOCCTRL("&d_sorted_source_node_index",&d_sorted_source_node_index,
+		       n_used_source_nodes*sizeof(int));
+  CUDAMALLOCCTRL("&d_i_unsorted_source_arr",&d_i_unsorted_source_arr,
+		       n_used_source_nodes*sizeof(int));
+  CUDAMALLOCCTRL("&d_i_sorted_source_arr",&d_i_sorted_source_arr,
+		       n_used_source_nodes*sizeof(int));
+  CUDAMALLOCCTRL("&d_source_node_index_to_be_mapped",&d_source_node_index_to_be_mapped,
+		       n_used_source_nodes*sizeof(int8_t));
   // source_node_index_to_be_mapped is initially false
   gpuErrchk(cudaMemset(d_source_node_index_to_be_mapped, 0,
 		       n_used_source_nodes*sizeof(int8_t)));
@@ -944,7 +949,7 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
 				  d_i_sorted_source_arr,
 				  n_used_source_nodes);
   // Allocate temporary storage
-  gpuErrchk(cudaMalloc(&d_sort_storage, sort_storage_bytes));
+  CUDAMALLOCCTRL("&d_sort_storage",&d_sort_storage, sort_storage_bytes);
 
   // Run sorting operation
   cub::DeviceRadixSort::SortPairs(d_sort_storage, sort_storage_bytes,
@@ -1003,7 +1008,7 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
 		<< n_blocks << " in local_source_node_map\n";
       exit(-1);
     }
-    gpuErrchk(cudaMalloc(&d_node_map, n_blocks*sizeof(int*)));
+    CUDAMALLOCCTRL("&d_node_map",&d_node_map, n_blocks*sizeof(int*));
     gpuErrchk(cudaMemcpy(d_node_map,
 			 &h_local_source_node_map[target_host][0],
 			 n_blocks*sizeof(int*),
@@ -1013,11 +1018,11 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
   // Allocate boolean array for flagging remote source nodes not yet mapped
   // and initialize all elements to 0 (false)
   bool *d_node_to_map;
-  gpuErrchk(cudaMalloc(&d_node_to_map, n_used_source_nodes*sizeof(bool)));
+  CUDAMALLOCCTRL("&d_node_to_map",&d_node_to_map, n_used_source_nodes*sizeof(bool));
   gpuErrchk(cudaMemset(d_node_to_map, 0, n_used_source_nodes*sizeof(bool)));
   // Allocate number of nodes to be mapped and initialize it to 0 
   int *d_n_node_to_map;
-  gpuErrchk(cudaMalloc(&d_n_node_to_map, sizeof(int)));
+  CUDAMALLOCCTRL("&d_n_node_to_map",&d_n_node_to_map, sizeof(int));
   gpuErrchk(cudaMemset(d_n_node_to_map, 0, sizeof(int)));
 
   // launch kernel that searches remote source nodes indexes in the map,
@@ -1073,7 +1078,7 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
     n_blocks = new_n_blocks;
 
     // reallocate d_node_map and get it from host
-    gpuErrchk(cudaMalloc(&d_node_map, n_blocks*sizeof(int*)));
+    CUDAMALLOCCTRL("&d_node_map",&d_node_map, n_blocks*sizeof(int*));
     gpuErrchk(cudaMemcpy(d_node_map,
 			 &h_local_source_node_map[target_host][0],
 			 n_blocks*sizeof(int*),
@@ -1087,7 +1092,7 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
   
   // Allocate the index of the nodes to be mapped and initialize it to 0 
   int *d_i_node_to_map;
-  gpuErrchk(cudaMalloc(&d_i_node_to_map, sizeof(int)));
+  CUDAMALLOCCTRL("&d_i_node_to_map",&d_i_node_to_map, sizeof(int));
   gpuErrchk(cudaMemset(d_i_node_to_map, 0, sizeof(int)));
 
   // launch kernel that checks if nodes are already in map
@@ -1165,7 +1170,7 @@ int NESTGPU::_RemoteConnectTarget(int target_host, T1 source, int n_source,
 #endif
   
   // Allocate temporary storage
-  gpuErrchk(cudaMalloc(&d_storage, storage_bytes));
+  CUDAMALLOCCTRL("&d_storage",&d_storage, storage_bytes);
 
   // Run sorting operation
   copass_sort::sort<int>
