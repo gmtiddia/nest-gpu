@@ -83,7 +83,7 @@ NodeSeq NESTGPU::_Create(std::string model_name, int n_nodes /*=1*/,
     node_vect_.push_back(iaf_psc_exp_group);
   }
   else if (model_name == neuron_model_name[i_iaf_psc_alpha_model]) {
-    n_port = 2;
+    n_ports = 2;
     iaf_psc_alpha *iaf_psc_alpha_group = new iaf_psc_alpha;
     node_vect_.push_back(iaf_psc_alpha_group);
   }
