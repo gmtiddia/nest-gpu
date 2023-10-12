@@ -468,7 +468,7 @@ int organizeConnections(float time_resolution, uint n_node, int64_t n_conn,
 					       conn_subarray.data(),
 					       n_conn, block_size, d_storage,
 					       storage_bytes);
-    printf("storage bytes: %ld\n", storage_bytes);
+    //printf("storage bytes: %ld\n", storage_bytes);
     CUDAMALLOCCTRL("&d_storage",&d_storage, storage_bytes);
     
     printf("Sorting...\n");

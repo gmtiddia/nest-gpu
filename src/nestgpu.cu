@@ -197,7 +197,7 @@ NESTGPU::NESTGPU()
   
   on_exception_ = ON_EXCEPTION_EXIT;
 
-  verbosity_level_ = 4;
+  verbosity_level_ = 0;
   print_time_ = false;
   
   mpi_flag_ = false;
@@ -440,7 +440,7 @@ int NESTGPU::Calibrate()
 			       sizeof(float)));
 ///////////////////////////////////
   i_ext_node_0_ = GetNNode();
-  std::cout << "i_ext_node_0_: " << i_ext_node_0_ << " n_ext_nodes_: "
+  //std::cout << "i_ext_node_0_: " << i_ext_node_0_ << " n_ext_nodes_: "
 	    << n_ext_nodes_ << "\n";
   if (n_ext_nodes_ > 0) {
     _Create("ext_neuron", n_ext_nodes_, 1);
