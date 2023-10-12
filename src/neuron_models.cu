@@ -98,17 +98,17 @@ NodeSeq NESTGPU::_Create(std::string model_name, int n_nodes /*=1*/,
     node_vect_.push_back(ext_neuron_group);
   }
   else if (model_name == neuron_model_name[i_aeif_cond_alpha_model]) {
-    n_port = 2;
+    n_ports = 2;
     aeif_cond_alpha *aeif_cond_alpha_group = new aeif_cond_alpha;
     node_vect_.push_back(aeif_cond_alpha_group);
   }
   else if (model_name == neuron_model_name[i_aeif_cond_beta_model]) {
-    n_port = 2;
+    n_ports = 2;
     aeif_cond_beta *aeif_cond_beta_group = new aeif_cond_beta;
     node_vect_.push_back(aeif_cond_beta_group);
   }
   else if (model_name == neuron_model_name[i_aeif_psc_alpha_model]) {
-    n_port = 2;
+    n_ports = 2;
     aeif_psc_alpha *aeif_psc_alpha_group = new aeif_psc_alpha;
     node_vect_.push_back(aeif_psc_alpha_group);
   }
@@ -118,7 +118,7 @@ NodeSeq NESTGPU::_Create(std::string model_name, int n_nodes /*=1*/,
     node_vect_.push_back(aeif_psc_delta_group);
   }
   else if (model_name == neuron_model_name[i_aeif_psc_exp_model]) {
-    n_port = 2;
+    n_ports = 2;
     aeif_psc_exp *aeif_psc_exp_group = new aeif_psc_exp;
     node_vect_.push_back(aeif_psc_exp_group);
   }

@@ -42,19 +42,19 @@
 // Combined function of PushedSpikeFromRemote with
 // AddOffset using default values for arguments
 // CHECK IF IT HAS TO BE DELETED !!!
-__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
-           float *spike_height, int offset)
-{
-  int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i_spike<n_spikes) {
-    int isb = spike_buffer_id[i_spike] + offset;
-    float height = 1.0;
-    if (spike_height != NULL) {
-      height = spike_height[i_spike];
-    }
-    PushSpike(isb, height);
-  }
-}
+//__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
+//           float *spike_height, int offset)
+//{
+//  int i_spike = threadIdx.x + blockIdx.x * blockDim.x;
+//  if (i_spike<n_spikes) {
+//    int isb = spike_buffer_id[i_spike] + offset;
+//    float height = 1.0;
+//    if (spike_height != NULL) {
+//      height = spike_height[i_spike];
+//    }
+//    PushSpike(isb, height);
+//  }
+//}
 
 
 // Simple kernel for pushing remote spikes in local spike buffers
@@ -333,7 +333,8 @@ __global__ void DeviceExternalSpikeInit(int n_hosts,
 int NESTGPU::SendSpikeToRemote(int n_hosts, int max_spike_per_host)
 {
   MPI_Request request;
-  int tag = 1;
+  int mpi_id, tag = 1; // id is already in the class, can be removed
+  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_id);
 
   double time_mark = getRealTime();
   gpuErrchk(cudaMemcpy(h_ExternalTargetSpikeNum, d_ExternalTargetSpikeNum,
@@ -354,7 +355,7 @@ int NESTGPU::SendSpikeToRemote(int n_hosts, int max_spike_per_host)
 
   // loop on remote MPI proc
   for (int ih=0; ih<n_hosts; ih++) {
-    if (ih == mpi_id_) { // skip self MPI proc
+    if (ih == mpi_id) { // skip self MPI proc
       continue;
     }
     // get index and size of spike packet that must be sent to MPI proc ih
@@ -384,7 +385,6 @@ int NESTGPU::RecvSpikeFromRemote(int n_hosts, int max_spike_per_host)
   std::list<int> recv_list;
   std::list<int>::iterator list_it;
   
-  MPI_Status Stat;
   int mpi_id, tag = 1; // id is already in the class, can be removed
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_id);
   
@@ -392,31 +392,21 @@ int NESTGPU::RecvSpikeFromRemote(int n_hosts, int max_spike_per_host)
   
   // loop on remote MPI proc
   for (int i_host=0; i_host<n_hosts; i_host++) {
-    if (i_host == mpi_id_) continue; // skip self MPI proc
+    if (i_host == mpi_id) continue; // skip self MPI proc
     // start nonblocking MPI receive from MPI proc i_host
     MPI_Irecv(&h_ExternalSourceSpikeNodeId[i_host*max_spike_per_host],
 	      max_spike_per_host, MPI_INT, i_host, tag, MPI_COMM_WORLD,
 	      &recv_mpi_request[i_host]);
   }
   
-  // loop until list is empty, i.e. until receive is complete
-  // from all MPI proc
-  while (recv_list.size()>0) {
-    // loop on all hosts in the list
-    for (list_it=recv_list.begin(); list_it!=recv_list.end(); ++list_it) {
-      int i_host = *list_it;
-      int flag;
-      // check if receive is complete
-      MPI_Test(&recv_mpi_request[i_host], &flag, &Stat);
-      if (flag) {
-	int count;
-	// get spike count
-	MPI_Get_count(&Stat, MPI_INT, &count);
-	h_ExternalSourceSpikeNum[i_host] = count;
-	// when receive is complete remove MPI proc from list
-	recv_list.erase(list_it);
-	break;
-      }
+  MPI_Status statuses[n_hosts];
+  recv_mpi_request[mpi_id] = MPI_REQUEST_NULL;
+  MPI_Waitall(n_hosts, recv_mpi_request, statuses);
+
+  for (int i_host=0; i_host<n_hosts; i_host++) {
+    if (i_host == mpi_id) {
+      h_ExternalSourceSpikeNum[i_host] = 0;
+      continue;
     }
     int count;
     MPI_Get_count(&statuses[i_host], MPI_INT, &count);
@@ -474,7 +464,7 @@ int NESTGPU::CopySpikeFromRemote(int n_hosts, int max_spike_per_host)
     cudaDeviceSynchronize();
     // push remote spikes in local spike buffers
     PushSpikeFromRemote<<<(n_spike_tot+1023)/1024, 1024>>>
-      (n_spike_tot, d_ExternalSourceSpikeNodeId, NULL, i_remote_node_0);
+      (n_spike_tot, d_ExternalSourceSpikeNodeId);
     gpuErrchk( cudaPeekAtLastError() );
     //cudaDeviceSynchronize();
   }

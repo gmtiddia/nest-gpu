@@ -39,8 +39,10 @@ Args:
 	- int offset: Offset to be used for spike_buffer indexes
 		Defaults to 0
 */
-__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
-                                    float *spike_height = NULL, int offset = 0);
+//__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id,
+//                                    float *spike_height = NULL, int offset = 0);
+
+__global__ void PushSpikeFromRemote(int n_spikes, int *spike_buffer_id);
 
 #ifdef HAVE_MPI
 
