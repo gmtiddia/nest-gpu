@@ -441,7 +441,7 @@ int NESTGPU::Calibrate()
 ///////////////////////////////////
   i_ext_node_0_ = GetNNode();
   //std::cout << "i_ext_node_0_: " << i_ext_node_0_ << " n_ext_nodes_: "
-	    << n_ext_nodes_ << "\n";
+	//    << n_ext_nodes_ << "\n";
   if (n_ext_nodes_ > 0) {
     _Create("ext_neuron", n_ext_nodes_, 1);
     addOffsetToExternalNodeIds();
