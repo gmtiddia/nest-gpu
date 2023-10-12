@@ -37,7 +37,6 @@ aeif_psc_exp_multisynapse_kernel.h \
 aeif_psc_exp_multisynapse_rk5.h \
 base_neuron.h \
 connect.h \
-connect_mpi.h \
 connect_rules.h \
 connect_spec.h \
 copass_kernels.h \
@@ -72,6 +71,7 @@ prefix_scan.h \
 propagate_error.h \
 propagator_stability.h \
 random.h \
+remote_connect.h \
 rev_spike.h \
 rk5_const.h \
 rk5.h \
@@ -105,7 +105,6 @@ aeif_psc_exp.cu \
 aeif_psc_exp_multisynapse.cu \
 base_neuron.cu \
 connect.cu \
-connect_mpi.cu \
 connect_rules.cu \
 copass_kernels.cu \
 copass_sort.cu \
@@ -132,6 +131,7 @@ poiss_gen.cu \
 prefix_scan.cu \
 propagator_stability.cu \
 random.cu \
+remote_connect.cu \
 rev_spike.cu \
 rk5.cu \
 scan.cu \
