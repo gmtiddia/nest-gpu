@@ -47,6 +47,7 @@ distribution.h \
 ext_neuron.h \
 getRealTime.h \
 get_spike.h \
+iaf_psc_alpha.h \
 iaf_psc_exp_g.h \
 iaf_psc_exp.h \
 iaf_psc_exp_hc.h \
@@ -69,6 +70,7 @@ poiss_gen.h \
 poiss_gen_variables.h \
 prefix_scan.h \
 propagate_error.h \
+propagator_stability.h \
 random.h \
 rev_spike.h \
 rk5_const.h \
@@ -111,6 +113,7 @@ distribution.cu \
 ext_neuron.cu \
 getRealTime.cu \
 get_spike.cu \
+iaf_psc_alpha.cu \
 iaf_psc_exp.cu \
 iaf_psc_exp_g.cu \
 iaf_psc_exp_hc.cu \
@@ -127,6 +130,7 @@ node_group.cu \
 parrot_neuron.cu \
 poiss_gen.cu \
 prefix_scan.cu \
+propagator_stability.cu \
 random.cu \
 rev_spike.cu \
 rk5.cu \
