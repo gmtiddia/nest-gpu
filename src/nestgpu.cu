@@ -197,7 +197,7 @@ NESTGPU::NESTGPU()
   
   on_exception_ = ON_EXCEPTION_EXIT;
 
-  verbosity_level_ = 0;
+  verbosity_level_ = 4;
   print_time_ = false;
   
   mpi_flag_ = false;

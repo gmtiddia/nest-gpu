@@ -626,7 +626,7 @@ int organizeConnections(float time_resolution, uint n_node, int64_t n_conn,
   gettimeofday(&endTV, NULL);
   long time = (long)((endTV.tv_sec * 1000000.0 + endTV.tv_usec)
 		     - (startTV.tv_sec * 1000000.0 + startTV.tv_usec));
-  printf("%-40s%.2f ms\n", "Time: ", (double)time / 1000.);
+  //printf("%-40s%.2f ms\n", "Time: ", (double)time / 1000.);
   printf("Done\n");
   
   
