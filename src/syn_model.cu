@@ -32,6 +32,7 @@
 #include "syn_model.h"
 #include "test_syn_model.h"
 #include "stdp.h"
+#include "diffusion_connection.h"
 
 int *d_SynGroupTypeMap;
 __device__ int *SynGroupTypeMap;
@@ -126,6 +127,10 @@ int NESTGPU::CreateSynGroup(std::string model_name)
   else if (model_name == syn_model_name[i_stdp_model]) {
     STDP *stdp_group = new STDP;
     syn_group_vect_.push_back(stdp_group);
+  }
+  else if (model_name == syn_model_name[i_diffusion_connection_model]) {
+    diffusion_connection *diffusion_connection_group = new diffusion_connection;
+    syn_group_vect_.push_back(diffusion_connection_group);
   }
   else {
     throw ngpu_exception(std::string("Unknown synapse model name: ")

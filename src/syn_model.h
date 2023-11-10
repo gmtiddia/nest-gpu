@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include "stdp.h"
+#include "diffusion_connection.h"
 
 #define MAX_SYN_DT 16384
 
@@ -36,7 +37,7 @@ extern __device__ float **SynGroupParamMap;
 __device__ void TestSynModelUpdate(float *w, float Dt, float *param);
 
 enum SynModels {
-  i_null_syn_model = 0, i_test_syn_model, i_stdp_model,
+  i_null_syn_model = 0, i_test_syn_model, i_stdp_model, i_diffusion_connection_model,
   N_SYN_MODELS
 };
 
@@ -51,12 +52,15 @@ __device__ __forceinline__ void SynapseUpdate(int syn_group, float *w, float Dt)
   case i_stdp_model:
     stdp_ns::STDPUpdate(w, Dt, param);
     break;
+  case i_diffusion_connection_model:
+    diffusion_connection_ns::diffusion_connection_Update(param);
+    break;
   }
 }
 
 
 const std::string syn_model_name[N_SYN_MODELS] = {
-  "", "test_syn_model", "stdp"
+  "", "test_syn_model", "stdp", "diffusion_connection"
 };
 
 class SynModel
@@ -83,6 +87,13 @@ class STDP : public SynModel
 {
  public:
   STDP() {Init();}
+  int Init();
+};
+
+class diffusion_connection : public SynModel
+{
+ public:
+  diffusion_connection() {Init();}
   int Init();
 };
 

@@ -53,6 +53,7 @@ connect_spec.h \
 copass_kernels.h \
 copass_sort.h \
 cuda_error.h \
+diffusion_connection.h \
 distribution.h \
 ext_neuron.h \
 getRealTime.h \
@@ -129,6 +130,7 @@ connect.cu \
 connect_rules.cu \
 copass_kernels.cu \
 copass_sort.cu \
+diffusion_connection.cu \
 distribution.cu \
 ext_neuron.cu \
 getRealTime.cu \
