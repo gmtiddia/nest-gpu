@@ -39,6 +39,10 @@
 MPI_Request *recv_mpi_request;
 #endif
 
+
+// create stream for hackathon
+cudaStream_t stream1, stream2, stream3, stream4;
+
 // Send spikes to remote MPI processes
 int NESTGPU::SendSpikeToRemote(int n_ext_spikes)
 {
@@ -48,16 +52,16 @@ int NESTGPU::SendSpikeToRemote(int n_ext_spikes)
   MPI_Comm_rank(MPI_COMM_WORLD, &mpi_id);
 
   double time_mark = getRealTime();
-  gpuErrchk(cudaMemcpy(h_ExternalTargetSpikeNum, d_ExternalTargetSpikeNum,
-		       n_hosts_*sizeof(int), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpyAsync(h_ExternalTargetSpikeNum, d_ExternalTargetSpikeNum,
+		       n_hosts_*sizeof(int), cudaMemcpyDeviceToHost, stream1));
   SendSpikeToRemote_CUDAcp_time_ += (getRealTime() - time_mark);
   
   time_mark = getRealTime();
   int n_spike_tot = 0;
   // copy spikes from GPU to CPU memory
   if (n_ext_spikes > 0) {
-    gpuErrchk(cudaMemcpy(&n_spike_tot, d_ExternalTargetSpikeIdx0 + n_hosts_,
-			 sizeof(int), cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpyAsync(&n_spike_tot, d_ExternalTargetSpikeIdx0 + n_hosts_,
+			 sizeof(int), cudaMemcpyDeviceToHost, stream2));
     if (n_spike_tot >= max_remote_spike_num_) {
       throw ngpu_exception
 	(std::string("Number of spikes to be sent remotely ")
@@ -65,14 +69,14 @@ int NESTGPU::SendSpikeToRemote(int n_ext_spikes)
 	 + " larger than limit " + std::to_string(max_remote_spike_num_));
     }
     
-    gpuErrchk(cudaMemcpy(h_ExternalTargetSpikeNodeId,
+    gpuErrchk(cudaMemcpyAsync(h_ExternalTargetSpikeNodeId,
 			 d_ExternalTargetSpikeNodeId,
 			 n_spike_tot*sizeof(int),
-			 cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(h_ExternalTargetSpikeIdx0,
+			 cudaMemcpyDeviceToHost, stream3));
+    gpuErrchk(cudaMemcpyAsync(h_ExternalTargetSpikeIdx0,
 			 d_ExternalTargetSpikeIdx0,
 			 (n_hosts_ + 1)*sizeof(int),
-			 cudaMemcpyDeviceToHost));
+			 cudaMemcpyDeviceToHost, stream4));
   }
   else {
     for (int i=0; i<n_hosts_+1; i++) {
@@ -159,6 +163,18 @@ int NESTGPU::RecvSpikeFromRemote()
 int NESTGPU::ConnectMpiInit(int argc, char *argv[])
 {
 #ifdef HAVE_MPI
+
+  // hackathon
+  cudaStreamCreate(&stream1);
+  cudaStreamCreateWithFlags(&stream1, cudaStreamNonBlocking);
+  cudaStreamCreate(&stream2);
+  cudaStreamCreateWithFlags(&stream2, cudaStreamNonBlocking);
+  cudaStreamCreate(&stream3);
+  cudaStreamCreateWithFlags(&stream3, cudaStreamNonBlocking);
+  cudaStreamCreate(&stream4);
+  cudaStreamCreateWithFlags(&stream4, cudaStreamNonBlocking);
+
+
   CheckUncalibrated("MPI connections cannot be initialized after calibration");
   int initialized;
   MPI_Initialized(&initialized);
@@ -192,6 +208,11 @@ int NESTGPU::MpiFinalize()
       MPI_Finalize();
     }
   }
+  // hackathon
+  cudaStreamDestroy(stream1);
+  cudaStreamDestroy(stream2);
+  cudaStreamDestroy(stream3);
+  cudaStreamDestroy(stream4);
   
   return 0;
 #else

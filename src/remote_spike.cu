@@ -397,7 +397,7 @@ int NESTGPU::CopySpikeFromRemote()
   
   if (n_spike_tot>0) {
     double time_mark = getRealTime();
-    // Memcopy will be synchronized    
+    // Memcopy will be synchronized
     // copy to GPU memory cumulative sum of number of spikes per source host
     gpuErrchk(cudaMemcpyAsync(d_ExternalSourceSpikeIdx0,
 			      h_ExternalSourceSpikeIdx0,
