@@ -57,21 +57,21 @@ int NESTGPU::SendSpikeToRemote(int n_ext_spikes)
   SendSpikeToRemote_CUDAcp_time_ += (getRealTime() - time_mark);
   
   time_mark = getRealTime();
-  int n_spike_tot = 0;
+  int& n_spk_tot_mpicomm = *((int*)(bufferTransfer)+ n_hosts_);
   // copy spikes from GPU to CPU memory
   if (n_ext_spikes > 0) {
-    gpuErrchk(cudaMemcpyAsync(&n_spike_tot, d_ExternalTargetSpikeIdx0 + n_hosts_,
+    gpuErrchk(cudaMemcpyAsync(&n_spk_tot_mpicomm, d_ExternalTargetSpikeIdx0 + n_hosts_,
 			 sizeof(int), cudaMemcpyDeviceToHost, stream2));
-    if (n_spike_tot >= max_remote_spike_num_) {
+    if (n_spk_tot_mpicomm >= max_remote_spike_num_) {
       throw ngpu_exception
 	(std::string("Number of spikes to be sent remotely ")
-	 + std::to_string(n_spike_tot)
+	 + std::to_string(n_spk_tot_mpicomm)
 	 + " larger than limit " + std::to_string(max_remote_spike_num_));
     }
     
     gpuErrchk(cudaMemcpyAsync(h_ExternalTargetSpikeNodeId,
 			 d_ExternalTargetSpikeNodeId,
-			 n_spike_tot*sizeof(int),
+			 n_spk_tot_mpicomm*sizeof(int),
 			 cudaMemcpyDeviceToHost, stream3));
     gpuErrchk(cudaMemcpyAsync(h_ExternalTargetSpikeIdx0,
 			 d_ExternalTargetSpikeIdx0,
