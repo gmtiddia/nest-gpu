@@ -75,14 +75,18 @@ extern __device__ float *ExternalSourceSpikeHeight;
 
 extern int *d_ExternalTargetSpikeIdx0;
 extern __device__ int *ExternalTargetSpikeIdx0;
-extern int *h_ExternalTargetSpikeIdx0;
+
 
 extern int *d_ExternalSourceSpikeIdx0;
 
 extern int *h_ExternalTargetSpikeNum;
+extern int *h_ExternalTargetSpikeIdx0;
+extern int *h_ExternalTargetSpikeNodeId;
+
+//extern char* bufferTransfer;
+
 extern int *h_ExternalSourceSpikeNum;
 extern int *h_ExternalSourceSpikeIdx0;
-extern int *h_ExternalTargetSpikeNodeId;
 extern int *h_ExternalSourceSpikeNodeId;
 
 //extern int *h_ExternalSpikeNodeId;

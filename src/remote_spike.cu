@@ -101,6 +101,8 @@ int *h_ExternalSourceSpikeIdx0;
 int *h_ExternalTargetSpikeNodeId;
 int *h_ExternalSourceSpikeNodeId;
 
+char *bufferTransfer=NULL;
+
 //int *h_ExternalSpikeNodeId;
 
 float *h_ExternalSpikeHeight;
@@ -208,13 +210,21 @@ int NESTGPU::ExternalSpikeInit()
   //int **h_ExternalNodeTargetHostId = new int*[n_node];
   //int **h_ExternalNodeId = new int*[n_node];
 
-  h_ExternalTargetSpikeIdx0 = new int[n_hosts_+1];
+  //h_ExternalTargetSpikeIdx0 = new int[n_hosts_+1];
   //h_ExternalSpikeNodeId = new int[max_spike_per_host_];
-  h_ExternalTargetSpikeNum = new int [n_hosts_];
-  h_ExternalSourceSpikeNum = new int[n_hosts_];
-  h_ExternalSourceSpikeIdx0 = new int[n_hosts_ + 1];
-  h_ExternalTargetSpikeNodeId = new int[max_remote_spike_num_];
+
+  // HACKATHON create a buffer transfer to pack the cudaMemcopy
+  
+  gpuErrchk(cudaMallocHost((void **)&bufferTransfer, sizeof(int)*n_hosts_ + sizeof(int) + (n_hosts_ + 1)*sizeof(int) + max_remote_spike_num_*sizeof(int)));
+  
+  h_ExternalTargetSpikeNum    = (int*) bufferTransfer; //new int [n_hosts_];
+  h_ExternalTargetSpikeNodeId = (int*)(bufferTransfer + sizeof(int)*n_hosts_ + sizeof(int));//new int[max_remote_spike_num_];
+  h_ExternalTargetSpikeIdx0   = (int*)(bufferTransfer + sizeof(int)*n_hosts_ + sizeof(int) + max_remote_spike_num_*sizeof(int));;//new int[n_hosts_+1];
+
+  h_ExternalSourceSpikeNum    = new int[n_hosts_];
   h_ExternalSourceSpikeNodeId = new int[max_remote_spike_num_];
+  h_ExternalSourceSpikeIdx0   = new int[n_hosts_ + 1];
+  
 
   CUDAMALLOCCTRL("&d_ExternalSpikeNum",&d_ExternalSpikeNum, sizeof(int));
   CUDAMALLOCCTRL("&d_ExternalSpikeSourceNode",&d_ExternalSpikeSourceNode,
@@ -371,9 +381,9 @@ int NESTGPU::organizeExternalSpikes(int n_ext_spikes)
 
 // pack spikes received from remote hosts
 // and copy them to GPU memory
-int NESTGPU::CopySpikeFromRemote()
+void NESTGPU::CopySpikeFromRemote()
 {
-  int n_spike_tot = 0;
+  int num_spk_len = 0;
   h_ExternalSourceSpikeIdx0[0] = 0;
   // loop on hosts
   for (int i_host=0; i_host<n_hosts_; i_host++) {
@@ -382,20 +392,20 @@ int NESTGPU::CopySpikeFromRemote()
       h_ExternalSourceSpikeIdx0[i_host] + n_spike;
     for (int i_spike=0; i_spike<n_spike; i_spike++) {
       // pack spikes received from remote hosts
-      h_ExternalSourceSpikeNodeId[n_spike_tot] =
+      h_ExternalSourceSpikeNodeId[num_spk_len] =
 	h_ExternalSourceSpikeNodeId[i_host*max_spike_per_host_ + i_spike];
-      n_spike_tot++;
+      num_spk_len++;
     }
   }
   
-  if (n_spike_tot >= max_remote_spike_num_) {
+  if (num_spk_len >= max_remote_spike_num_) {
     throw ngpu_exception
       (std::string("Number of spikes to be received remotely ")
-       + std::to_string(n_spike_tot)
+       + std::to_string(num_spk_len)
        + " larger than limit " + std::to_string(max_remote_spike_num_));
   }
   
-  if (n_spike_tot>0) {
+  if (num_spk_len>0) {
     double time_mark = getRealTime();
     // Memcopy will be synchronized
     // copy to GPU memory cumulative sum of number of spikes per source host
@@ -406,7 +416,7 @@ int NESTGPU::CopySpikeFromRemote()
     // copy to GPU memory packed spikes from remote hosts
     gpuErrchk(cudaMemcpyAsync(d_ExternalSourceSpikeNodeId,
 			      h_ExternalSourceSpikeNodeId,
-			      n_spike_tot*sizeof(int), cudaMemcpyHostToDevice));
+			      num_spk_len*sizeof(int), cudaMemcpyHostToDevice));
     DBGCUDASYNC;
     RecvSpikeFromRemote_CUDAcp_time_ += (getRealTime() - time_mark);
     // convert node map indexes to spike buffer indexes
@@ -416,16 +426,17 @@ int NESTGPU::CopySpikeFromRemote()
     DBGCUDASYNC;
     // convert node group indexes to spike buffer indexes
     // by adding the index of the first node of the node group  
-    //AddOffset<<<(n_spike_tot+1023)/1024, 1024>>>
-    //  (n_spike_tot, d_ExternalSourceSpikeNodeId, i_remote_node_0);
+    //AddOffset<<<(num_spk_len+1023)/1024, 1024>>>
+    //  (num_spk_len, d_ExternalSourceSpikeNodeId, i_remote_node_0);
     //gpuErrchk( cudaPeekAtLastError() );
     //cudaDeviceSynchronize();
     // push remote spikes in local spike buffers
-    PushSpikeFromRemote<<<(n_spike_tot+1023)/1024, 1024>>>
-      (n_spike_tot, d_ExternalSourceSpikeNodeId);
+    PushSpikeFromRemote<<<(num_spk_len+1023)/1024, 1024>>>
+      (num_spk_len, d_ExternalSourceSpikeNodeId);
     DBGCUDASYNC;
   }
   
-  return n_spike_tot;
+  return;
+  //return num_spk_len;
 }
 
