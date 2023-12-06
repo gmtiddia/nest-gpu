@@ -796,7 +796,7 @@ class NESTGPU
 
   int ExternalSpikeReset();
 
-  int CopySpikeFromRemote();
+  void CopySpikeFromRemote();
 
   int SendSpikeToRemote(int n_ext_spikes);
 
