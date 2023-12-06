@@ -1724,11 +1724,11 @@ int BaseNeuron::SetNeuronGroupParam(std::string param_name, float val)
 // in contiguous locations in GPU memory 
 __global__ void PackSpikeTimesKernel(int n_neuron, int *n_rec_spike_times_cumul,
 		     float *rec_spike_times, float *rec_spike_times_pack,
-		     int n_spike_tot, int max_n_rec_spike_times)
+		     int total_spikes_bn, int max_n_rec_spike_times)
 {
   // array_idx: index on one-dimensional packed spike array 
   int array_idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (array_idx<n_spike_tot) {
+  if (array_idx<total_spikes_bn) {
     // a locate of array_idx on the cumulative sum of the number of spikes
     // of the neurons is used to get the neuron index
     int i_neuron = locate(array_idx, n_rec_spike_times_cumul, n_neuron + 1);
@@ -1761,20 +1761,20 @@ int BaseNeuron::BufferRecSpikeTimes()
 			    n_rec_spike_times_cumul_,
 			    (n_node_+1)*sizeof(int), cudaMemcpyDeviceToHost));
   // the last element of the cumulative sum is the total number of spikes
-  int n_spike_tot = h_n_rec_spike_times_cumul[n_node_];
+  int total_spikes_bn = h_n_rec_spike_times_cumul[n_node_];
 
-  if (n_spike_tot>0) {
+  if (total_spikes_bn>0) {
     // pack spike times in GPU memory
-    PackSpikeTimesKernel<<<(n_spike_tot+1023)/1024, 1024>>>(n_node_,
+    PackSpikeTimesKernel<<<(total_spikes_bn+1023)/1024, 1024>>>(n_node_,
 		     n_rec_spike_times_cumul_,
 		     rec_spike_times_,
 		     rec_spike_times_pack_,
-		     n_spike_tot, max_n_rec_spike_times_);
+		     total_spikes_bn, max_n_rec_spike_times_);
 
-    float *h_rec_spike_times_pack = new float[n_spike_tot];
+    float *h_rec_spike_times_pack = new float[total_spikes_bn];
     gpuErrchk(cudaMemcpy(h_rec_spike_times_pack,
 			 rec_spike_times_pack_,
-			 sizeof(float)*n_spike_tot, cudaMemcpyDeviceToHost));
+			 sizeof(float)*total_spikes_bn, cudaMemcpyDeviceToHost));
     // push the packed spike array and the cumulative sum in the buffers
     spike_times_buffer_.push_back(h_rec_spike_times_pack);
     n_spike_times_cumul_buffer_.push_back(h_n_rec_spike_times_cumul);
