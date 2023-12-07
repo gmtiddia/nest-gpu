@@ -24,5 +24,6 @@
 #define MPI_COMM_H
 
 extern char* bufferTransfer;
+extern char* d_bufferTransfer;
 
 #endif

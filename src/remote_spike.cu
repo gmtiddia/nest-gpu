@@ -216,7 +216,8 @@ int NESTGPU::ExternalSpikeInit()
   // HACKATHON create a buffer transfer to pack the cudaMemcopy
   
   gpuErrchk(cudaMallocHost((void **)&bufferTransfer, sizeof(int)*n_hosts_ + sizeof(int) + (n_hosts_ + 1)*sizeof(int) + max_remote_spike_num_*sizeof(int)));
-  
+  //gpuErrchk(cudaMalloc(  (void **)&d_bufferTransfer, sizeof(int)*n_hosts_ + sizeof(int) + (n_hosts_ + 1)*sizeof(int) + max_remote_spike_num_*sizeof(int)));
+
   h_ExternalTargetSpikeNum    = (int*) bufferTransfer; //new int [n_hosts_];
   h_ExternalTargetSpikeNodeId = (int*)(bufferTransfer + sizeof(int)*n_hosts_ + sizeof(int));//new int[max_remote_spike_num_];
   h_ExternalTargetSpikeIdx0   = (int*)(bufferTransfer + sizeof(int)*n_hosts_ + sizeof(int) + max_remote_spike_num_*sizeof(int));;//new int[n_hosts_+1];

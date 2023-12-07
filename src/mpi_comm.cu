@@ -77,6 +77,13 @@ int NESTGPU::SendSpikeToRemote(int n_ext_spikes)
 			 d_ExternalTargetSpikeIdx0,
 			 (n_hosts_ + 1)*sizeof(int),
 			 cudaMemcpyDeviceToHost, stream4));
+    
+    // hackarthon: now we synchronize
+    gpuErrchk(cudaStreamSynchronize(stream1));
+    gpuErrchk(cudaStreamSynchronize(stream2));
+    gpuErrchk(cudaStreamSynchronize(stream3));
+    gpuErrchk(cudaStreamSynchronize(stream4));
+
   }
   else {
     for (int i=0; i<n_hosts_+1; i++) {
