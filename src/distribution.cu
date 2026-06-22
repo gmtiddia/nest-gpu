@@ -77,8 +77,8 @@ randomNormalClipped( float* arr, int64_t n, float mu, float sigma, float low, fl
     beta_val = log((double)high);
   }
   
-  double alpha = ( ( double ) low - mu ) / sigma;
-  double beta = ( ( double ) high - mu ) / sigma;
+  double alpha = ( alpha_val - mu ) / sigma;
+  double beta = ( beta_val - mu ) / sigma;
   double normal_cdf_alpha = normalCDF( alpha );
   double normal_cdf_beta = normalCDF( beta );
 
@@ -86,7 +86,7 @@ randomNormalClipped( float* arr, int64_t n, float mu, float sigma, float low, fl
   //	 mu, sigma, low, high, n);
   // n = 10000;
   randomNormalClippedKernel<<< ( n + 1023 ) / 1024, 1024 >>>(
-    arr, n, mu, sigma, low, high, normal_cdf_alpha, normal_cdf_beta );
+    arr, n, mu, sigma, low, high, normal_cdf_alpha, normal_cdf_beta, is_log );
   DBGCUDASYNC
   // temporary test, remove!!!!!!!!!!!!!
   // gpuErrchk( cudaDeviceSynchronize() );
