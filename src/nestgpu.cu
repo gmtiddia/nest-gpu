@@ -1592,6 +1592,12 @@ NESTGPU::RandomNormal( size_t n, float mean, float stddev )
 }
 
 float*
+NESTGPU::RandomLognormal( size_t n, float mean, float stddev )
+{
+  return curand_log_normal( *random_generator_, n, mean, stddev );
+}
+
+float*
 NESTGPU::RandomNormalClipped( size_t n, float mean, float stddev, float vmin, float vmax, float vstep )
 {
   const float epsi = 1.0e-6;
