@@ -172,8 +172,10 @@ Distribution::getArray( curandGenerator_t& gen, int64_t n_elem, int i_vect )
     float low  = expf(log_low);
     float high = expf(log_high);
 
-    CURAND_CALL( curandGenerateUniform( gen, d_array_pt_, n_elem ) );
-    randomNormalClipped( d_array_pt_, n_elem, mu_[ i_vect ], sigma_[ i_vect ], low, high, true );
+    CURAND_CALL( curandGenerateLogNormal( gen, d_array_pt_, n_elem,  mu_[ i_vect ], sigma_[ i_vect ]) );
+    //CURAND_CALL( curandGenerateUniform( gen, d_array_pt_, n_elem ) );
+    //randomNormalClipped( d_array_pt_, n_elem, mu_[ i_vect ], sigma_[ i_vect ], low, high, true );
+  }
   return d_array_pt_;
 }
 
