@@ -1592,7 +1592,7 @@ NESTGPU::RandomNormal( size_t n, float mean, float stddev )
 }
 
 float*
-NESTGPU::RandomLognormalClipped( size_t n, float mean, float stddev, float vmin, float vmax )
+NESTGPU::RandomLognormalClipped( size_t n, float mean, float stddev, float vmin, float vmax, float vstep )
 {
   const float epsi = 1.0e-6;
 
