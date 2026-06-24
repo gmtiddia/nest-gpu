@@ -52,7 +52,7 @@ randomNormalClippedKernel( float* arr,
 
   double x = ( double ) sigma * sqrt( 2.0 ) * erfinv( v ) + mu;
   if (is_log) {
-    x = exp(x)
+    x = exp(x);
   }
   x = max( x, low );
   x = min( x, high );
