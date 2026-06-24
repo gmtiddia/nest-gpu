@@ -72,7 +72,7 @@ curand_normal( curandGenerator_t& gen, size_t n, float mean, float stddev )
 }
 
 float*
-curand_log_normal( curandGenerator_t& gen, size_t n, float mean, float stddev )
+curand_log_normal( curandGenerator_t& gen, size_t n, float mean, float stddev, float vmin, float vmax )
 {
   size_t n1 = ( ( n % 2 ) == 0 ) ? n : n + 1; // round up to multiple of 2
   float* dev_data;
@@ -86,6 +86,8 @@ curand_log_normal( curandGenerator_t& gen, size_t n, float mean, float stddev )
   // printf("curandGenerateNormal n1: %d\tmean: %f\tstd: %f\n", (int)n1, mean,
   //	 stddev);
   CURAND_CALL( curandGenerateLogNormal( gen, dev_data, n1, mean, stddev ) );
+
+  clipped_kernel <<< (n1 + 1023/1024), 1024 >>>(dev_data, vmin, vmax, n1);
   // cudaDeviceSynchronize();
   //  Copy device memory to host
   CUDA_CALL( cudaMemcpy( host_data, dev_data, n * sizeof( float ), cudaMemcpyDeviceToHost ) );
@@ -93,4 +95,13 @@ curand_log_normal( curandGenerator_t& gen, size_t n, float mean, float stddev )
   CUDAFREECTRL( "dev_data", dev_data );
 
   return host_data;
+}
+
+__global__ void clipped_kernel(float* input, float vmin, float vmax, size_t n) {
+  size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+  
+  if (idx < n) {
+    input[idx] = fminf(input[idx], vmin);
+    input[idx] = fmaxf(input[idx], vmax);
+  }
 }

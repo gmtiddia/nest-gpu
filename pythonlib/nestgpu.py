@@ -92,7 +92,7 @@ distribution_dict = {
     "array": 1,
     "normal": 2,
     "normal_clipped": 3,
-    "lognormal": 4
+    "lognormal_clipped": 4
 }
 
 # the following must match the enum NestedLoopAlgo in nested_loop.h
@@ -1711,13 +1711,13 @@ def RandomNormal(n, mean, stddev):
     return ret
 
 
-NESTGPU_RandomLognormal = _nestgpu.NESTGPU_RandomLognormal
-NESTGPU_RandomLognormal.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float)
-NESTGPU_RandomLognormal.restype = c_float_p
-def RandomLognormal(n, mean, stddev):
+NESTGPU_RandomLognormalClipped = _nestgpu.NESTGPU_RandomLognormalClipped
+NESTGPU_RandomLognormalClipped.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float)
+NESTGPU_RandomLognormalClipped.restype = c_float_p
+def RandomLognormalClipped(n, mean, stddev, vmax, vmin):
     "Generate n random floats with lognormal distribution in CUDA memory"
-    ret = NESTGPU_RandomLognormal(ctypes.c_size_t(n), ctypes.c_float(mean),
-                                 ctypes.c_float(stddev))
+    ret = NESTGPU_RandomLognormalClipped(ctypes.c_size_t(n), ctypes.c_float(mean),
+                                 ctypes.c_float(stddev), ctypes.c_float(vmax), ctypes.c_float(vmin))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
@@ -1734,9 +1734,9 @@ def RandomNormalClipped(n, mean, stddev, vmin, vmax, vstep=0):
                                         ctypes.c_float(stddev),
                                         ctypes.c_float(vmin),
                                         ctypes.c_float(vmax),
-                                        ctypes.c_float(vstep))
-    if GetErrorCode() != 0:
-        raise ValueError(GetErrorMessage())
+                                        ctypes.c_float(stddev))
+    if GetErrorCode() != 0:stddev
+        raise ValueError(GetErrorMessage())stddev
     return ret
 
 
@@ -1898,8 +1898,8 @@ def DictToArray(param_dict, array_size):
         return RandomNormal(array_size, mu, sigma)
     elif dist_name=="normal_clipped":
         return RandomNormalClipped(array_size, mu, sigma, low, high, vstep)
-    elif dist_name=="lognormal":
-        return RandomLognormal(array_size, mu, sigma)
+    elif dist_name=="lognormal_clipped":
+        return RandomLognormalClipped(array_size, mu, sigma, low, high)
     else:
         raise ValueError("Unknown distribution")
 

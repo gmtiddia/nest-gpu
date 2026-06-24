@@ -688,7 +688,7 @@ public:
 
   float* RandomNormal( size_t n, float mean, float stddev );
 
-  float* RandomLognormal( size_t n, float mean, float stddev );
+  float* RandomLognormalClipped( size_t n, float mean, float stddev, float vmin, float vmax );
 
   float* RandomNormalClipped( size_t n, float mean, float stddev, float vmin, float vmax, float vstep );
 

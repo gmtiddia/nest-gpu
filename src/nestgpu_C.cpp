@@ -936,12 +936,12 @@ extern "C"
   }
 
   float*
-  NESTGPU_RandomLognormal( size_t n, float mean, float stddev )
+  NESTGPU_RandomLognormalClipped( size_t n, float mean, float stddev, float vmin, float vmax )
   {
     float* ret = nullptr;
     BEGIN_ERR_PROP
     {
-      ret = NESTGPU_instance->RandomLognormal( n, mean, stddev );
+      ret = NESTGPU_instance->RandomLognormalClipped( n, mean, stddev, vmin, vmax );
     }
     END_ERR_PROP return ret;
   }

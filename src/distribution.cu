@@ -47,9 +47,6 @@ randomNormalClippedKernel( float* arr,
   float uniform = arr[ tid ];
   double p = normal_cdf_alpha + ( normal_cdf_beta - normal_cdf_alpha ) * uniform;
   if ( is_log )
-  { 
-    p = log(p);
-  }
   double v = p * 2.0 - 1.0;
   v = max( v, epsilon - 1.0 );
   v = min( v, -epsilon + 1.0 );
@@ -57,7 +54,9 @@ randomNormalClippedKernel( float* arr,
   double x = ( double ) sigma * sqrt( 2.0 ) * erfinv( v ) + mu;
   x = max( x, low );
   x = min( x, high );
-  arr[ tid ] = ( float ) x;
+  if (is_log) arr[ tid ] = ( float ) exp(x);
+  else arr[ tid ] = ( float ) x;
+  
 }
 
 double
@@ -166,20 +165,10 @@ Distribution::getArray( curandGenerator_t& gen, int64_t n_elem, int i_vect )
     CURAND_CALL( curandGenerateUniform( gen, d_array_pt_, n_elem ) );
     randomNormalClipped( d_array_pt_, n_elem, mu_[ i_vect ], sigma_[ i_vect ], low, high, false );
   }
-  else if ( distr_idx_ == DISTR_TYPE_LOGNORMAL )
+  else if ( distr_idx_ == DISTR_TYPE_LOGNORMAL_CLIPPED )
   {
-
-    float log_low  = mu_[ i_vect ] - 5.0 * sigma_[ i_vect ];
-    float log_high = mu_[ i_vect ] + 5.0 * sigma_[ i_vect ];
-    float low  = expf(log_low);
-    float high = expf(log_high);
-
-    float mu_nd = expf(mu_[ i_vect ] + 0.5*sigma_[ i_vect ]*sigma_[ i_vect ]);
-    float std_nd = (expf(sigma_[ i_vect ]*sigma_[ i_vect ]) - 1) * expf(2*mu_[ i_vect ] + sigma_[ i_vect ]*sigma_[ i_vect ]);
-
-    CURAND_CALL( curandGenerateLogNormal( gen, d_array_pt_, n_elem,  mu_nd, std_nd) );
-    //CURAND_CALL( curandGenerateUniform( gen, d_array_pt_, n_elem ) );
-    //randomNormalClipped( d_array_pt_, n_elem, mu_[ i_vect ], sigma_[ i_vect ], low, high, true );
+    CURAND_CALL( curandGenerateUniform( gen, d_array_pt_, n_elem ) );
+    randomNormalClipped( d_array_pt_, n_elem, mu_[ i_vect ], sigma_[ i_vect ], low_[ i_vect ], high_[ i_vect ], true );
   }
   return d_array_pt_;
 }

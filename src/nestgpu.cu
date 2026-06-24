@@ -1592,9 +1592,9 @@ NESTGPU::RandomNormal( size_t n, float mean, float stddev )
 }
 
 float*
-NESTGPU::RandomLognormal( size_t n, float mean, float stddev )
+NESTGPU::RandomLognormalClipped( size_t n, float mean, float stddev, float vmin, float vmax )
 {
-  return curand_log_normal( *random_generator_, n, mean, stddev );
+  return curand_log_normal( *random_generator_, n, mean, stddev, vmin, vmax );
 }
 
 float*
