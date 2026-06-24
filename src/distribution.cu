@@ -46,17 +46,17 @@ randomNormalClippedKernel( float* arr,
   }
   float uniform = arr[ tid ];
   double p = normal_cdf_alpha + ( normal_cdf_beta - normal_cdf_alpha ) * uniform;
-  if ( is_log )
   double v = p * 2.0 - 1.0;
   v = max( v, epsilon - 1.0 );
   v = min( v, -epsilon + 1.0 );
 
   double x = ( double ) sigma * sqrt( 2.0 ) * erfinv( v ) + mu;
+  if (is_log) {
+    x = exp(x)
+  }
   x = max( x, low );
   x = min( x, high );
-  if (is_log) arr[ tid ] = ( float ) exp(x);
-  else arr[ tid ] = ( float ) x;
-  
+  arr[ tid ] = ( float ) x;
 }
 
 double

@@ -71,6 +71,15 @@ curand_normal( curandGenerator_t& gen, size_t n, float mean, float stddev )
   return host_data;
 }
 
+__global__ void clipped_kernel(float* input, float vmin, float vmax, size_t n) {
+  size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+  
+  if (idx < n) {
+    input[idx] = fminf(input[idx], vmin);
+    input[idx] = fmaxf(input[idx], vmax);
+  }
+}
+
 float*
 curand_log_normal( curandGenerator_t& gen, size_t n, float mean, float stddev, float vmin, float vmax )
 {
@@ -95,13 +104,4 @@ curand_log_normal( curandGenerator_t& gen, size_t n, float mean, float stddev, f
   CUDAFREECTRL( "dev_data", dev_data );
 
   return host_data;
-}
-
-__global__ void clipped_kernel(float* input, float vmin, float vmax, size_t n) {
-  size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-  
-  if (idx < n) {
-    input[idx] = fminf(input[idx], vmin);
-    input[idx] = fmaxf(input[idx], vmax);
-  }
 }
