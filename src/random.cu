@@ -75,8 +75,8 @@ __global__ void clipped_kernel(float* input, float vmin, float vmax, size_t n) {
   size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
   
   if (idx < n) {
-    input[idx] = fminf(input[idx], vmin);
-    input[idx] = fmaxf(input[idx], vmax);
+    input[idx] = fmaxf(input[idx], vmin);
+    input[idx] = fminf(input[idx], vmax);
   }
 }
 

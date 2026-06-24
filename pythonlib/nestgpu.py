@@ -1714,10 +1714,10 @@ def RandomNormal(n, mean, stddev):
 NESTGPU_RandomLognormalClipped = _nestgpu.NESTGPU_RandomLognormalClipped
 NESTGPU_RandomLognormalClipped.argtypes = (ctypes.c_size_t, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float)
 NESTGPU_RandomLognormalClipped.restype = c_float_p
-def RandomLognormalClipped(n, mean, stddev, vmax, vmin):
+def RandomLognormalClipped(n, mean, stddev, vmin, vmax):
     "Generate n random floats with lognormal distribution in CUDA memory"
     ret = NESTGPU_RandomLognormalClipped(ctypes.c_size_t(n), ctypes.c_float(mean),
-                                 ctypes.c_float(stddev), ctypes.c_float(vmax), ctypes.c_float(vmin))
+                                 ctypes.c_float(stddev), ctypes.c_float(vmin), ctypes.c_float(vmax))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
