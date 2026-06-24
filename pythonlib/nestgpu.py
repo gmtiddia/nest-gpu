@@ -1734,7 +1734,7 @@ def RandomNormalClipped(n, mean, stddev, vmin, vmax, vstep=0):
                                         ctypes.c_float(stddev),
                                         ctypes.c_float(vmin),
                                         ctypes.c_float(vmax),
-                                        ctypes.c_float(stddev))
+                                        ctypes.c_float(vstep))
     if GetErrorCode() != 0:
         raise ValueError(GetErrorMessage())
     return ret
