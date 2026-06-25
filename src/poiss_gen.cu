@@ -135,7 +135,7 @@ poiss_gen::Calibrate( double, float )
   // if the device is not connected to any other node, the calibration continues without rising errors
   if ( n_dir_conn_ == 0 )
   {
-    std::cout << "\tWarning: Poisson generator devices created but not used.\n";
+    std::cout << "Warning: Poisson generator devices created but not used.\n";
     return 0; 
   }
 
