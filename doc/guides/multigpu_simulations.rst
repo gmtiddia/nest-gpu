@@ -1,7 +1,10 @@
 Simulations using multiple GPUs
 ===============================
 
-NEST GPU can exploit multiple GPUs in parallel to perform simulations. It is common to have a configuration where a single GPU is assigned to each MPI process of the parallel simulation.
+NEST GPU can exploit multiple GPUs in parallel to perform simulations. It is common to have a configuration where a single GPU is assigned to each MPI process of the parallel simulation. Although having multiple MPI ranks using the same GPU is possible, that is not the intended use of NEST GPU for multi-GPU simulations.
+
+.. note::
+   To ensure that each MPI rank is correctly mapped to a specific GPU, users may need to configure the ``CUDA_VISIBLE_DEVICES`` environment variable before launching the simulation. While workload managers such as SLURM typically handle this resource allocation automatically, manual configuration is necessary when running parallel simulations outside cluster environments.
 
 The library naturally exploits the locality of the network: while the CPU version of NEST distributes the network model using a round-robin approach, the GPU version enables the creation of an entire population inside a specific MPI process.
 This is particularly useful in the case of modular networks, where the spike traffic is higher within the same module of the network. However, the simulation code shows some differences with respect to the CPU version, and the user should be aware of how to distribute the neuron populations of the model among different MPI processes.
@@ -150,6 +153,8 @@ The following example, adapted from ``hpc_benchmark.py``, demonstrates how to in
         syn_dict_ex      # Synapse dictionary
     )
 
+
+While this example demonstrates ``ConnectDistributedFixedIndegree``, other connection rules can also be adopted.
 
 References
 ----------
