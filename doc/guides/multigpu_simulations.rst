@@ -40,6 +40,19 @@ When nodes belonging to different MPI processes need to be connected, a ``Remote
 This connects the population ``source_pop`` instantiated on Rank ``source_host_id`` to ``target_pop`` instantiated on ``target_host_id``. 
 Essentially, you must declare the MPI process ID where each population is instantiated alongside the populations themselves.
 
+.. warning::
+    Although each rank can independently construct its share of the network, the correct way to use remote creation and connections in NEST GPU is to have all ranks call all creation and connection functions.
+    For this reason, ``RemoteCreate`` and ``RemoteConnect`` calls should not be specified inside a rank conditional block.
+    In principle, if both the ranks involved in a connection are included in the condition block, e.g.,
+    
+    .. code-block:: python
+
+        if rank == 1 or rank == 3:
+            nestgpu.RemoteConnect(1 ,pop_1, 3, pop_3, ...)
+    
+    the connections would be correctly instantiated. However, this is highly discouraged for regular users.
+
+
 
 Different communication strategies
 ----------------------------------
