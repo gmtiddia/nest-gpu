@@ -47,6 +47,7 @@ Essentially, you must declare the MPI process ID where each population is instan
     
     .. code-block:: python
 
+        # don't try this at home!
         if rank == 1 or rank == 3:
             nestgpu.RemoteConnect(1 ,pop_1, 3, pop_3, ...)
     
