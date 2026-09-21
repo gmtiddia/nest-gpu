@@ -6,7 +6,7 @@ Randomness in NEST GPU simulations
 
 As in NEST, random numbers are used in several occasions for neural network creation, such
 as the randomization of node and connection parameters and when stochastic input or stochastic 
-connection rules are employed in the simulation (see the ref:`nest:random_numbers`). NEST GPU uses random generators from the 
+connection rules are employed in the simulation (see the :ref:`nest:random_numbers`). NEST GPU uses random generators from the 
 `curand <https://docs.nvidia.com/cuda/curand/index.html>`_ library of CUDA to obtain random
 numbers following different distributions.
 
@@ -39,7 +39,7 @@ Random numbers for network parameters
 =====================================
 
 NEST GPU allows models to be parametrized using probability distributions,
-in a way similar to NEST (see the :ref:`nest:neurons/parametrization`).
+in a way similar to NEST (see the :ref:`nest:parametrization`).
 
 The following sections describe the distributions currently implemented.
 
