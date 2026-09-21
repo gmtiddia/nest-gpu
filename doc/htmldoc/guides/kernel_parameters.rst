@@ -3,7 +3,7 @@
 NEST GPU kernel parameters
 ==========================
 
-NEST GPU provides a set of configurable kernel parameters that control the global simulation state, performance tuning, memory allocation, buffer sizes, and communication behavior across GPU and MPI nodes.
+NEST GPU provides a set of configurable kernel parameters that control the global simulation state, performance tuning, memory allocation, buffer sizes, and communication behavior across MPI processes.
 
 To better guide users, these parameters are divided into two categories based on their relevance and usage frequency:
 
