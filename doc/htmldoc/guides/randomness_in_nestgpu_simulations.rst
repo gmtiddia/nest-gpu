@@ -39,7 +39,7 @@ Random numbers for network parameters
 =====================================
 
 NEST GPU allows models to be parametrized using probability distributions,
-in a way similar to NEST (see the :ref:`nest:parametrization`).
+in a way similar to NEST (see the :ref:`nest:neuron/parametrization`).
 
 The following sections describe the distributions currently implemented.
 
