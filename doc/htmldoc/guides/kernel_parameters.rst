@@ -3,15 +3,22 @@
 NEST GPU kernel parameters
 ==========================
 
-NEST GPU provides a set of configurable kernel parameters that control the global simulation state, performance tuning, memory allocation, buffer sizes, and communication behavior across MPI processes.
+Similarly to NEST (see :ref:`nest:sec_kernel_attributes`), NEST GPU provides a set of configurable kernel parameters that control the global simulation state, performance tuning, memory allocation, buffer sizes, and communication behavior across MPI processes.
+
+Kernel parameters can be set and shown using the ``SetKernelStatus`` and ``GetKernelStatus`` commands, as follows:
+
+.. code-block:: python
+
+   nestgpu.SetKernelStatus("time_resolution", 0.1)
+
+   nestgpu.GetKernelStatus()
+
 
 To better guide users, these parameters are divided into two categories based on their relevance and usage frequency:
 
 - :ref:`kernel-general-parameters`: Common parameters that standard users frequently adjust for their simulations.
 
 - :ref:`kernel-advanced-parameters`: Low-level, internal, or optimization parameters that are typically managed by advanced developers and are best left at their default values.
-
----
 
 .. _kernel-general-parameters:
 
@@ -29,7 +36,7 @@ These parameters are commonly accessed and modified by standard users to control
      - Description
    * - ``time_resolution``
      - float
-     - Simulation time step (resolution) :math:`h` in milliseconds.
+     - Simulation time step (resolution) :math:`h` in milliseconds. Default: 0.1.
    * - ``rnd_seed``
      - int
      - Base random number generator (RNG) seed for stochastic processes and network initialization as mentioned in :ref:`random_number_seed`.
@@ -43,7 +50,6 @@ These parameters are commonly accessed and modified by standard users to control
      - bool
      - Enables or disables periodic printing of the simulation progress (current simulation time) to stdout.
 
----
 
 .. _kernel-advanced-parameters:
 
